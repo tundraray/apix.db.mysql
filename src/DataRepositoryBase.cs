@@ -190,14 +190,11 @@ namespace Apix.Db.Mysql
         /// <returns>T-SQL INSERT string</returns>
         protected virtual string GenerateCreateStatement(PropertyInfo[] properties)
         {
-            var insertStatement = "INSERT INTO [" + TableName + "]";
+            var insertStatement = "INSERT INTO `" + TableName + "`";
             var columnNames = new StringBuilder("(");
             var columnValues = new StringBuilder(" VALUES (");
             int propertiesCount = properties.Length;
-
-            columnNames.Append("[isDeleted],");
-            columnValues.Append("0,");
-
+       
             for (int i = 0; i < propertiesCount; i++)
             {
                 if (i > 0)
@@ -208,11 +205,11 @@ namespace Apix.Db.Mysql
 
                 if (properties[i].Name.IsIgnoreCaseEqual(IdentityName))
                 {
-                    columnNames.Append("[" + IdentityName + "]");
+                    columnNames.Append("`" + IdentityName + "`");
                 }
                 else
                 {
-                    columnNames.Append("[" + properties[i].Name + "]");
+                    columnNames.Append("`" + properties[i].Name + "`");
                 }
 
                 columnValues.Append("@" + properties[i].Name);

@@ -83,7 +83,7 @@ namespace Apix.Db.Mysql
         private static string GenerateInsertStatement(TypeInfo type, string tableName, string identityName)
         {
             var properties = GetOrAdd(type);
-            var insertStatement = $"INSERT INTO {tableName}";
+            var insertStatement = $"INSERT INTO `{tableName}`";
             var columnNames = new StringBuilder("(");
             var columnValues = new StringBuilder(" VALUES (");
             var propertiesCount = properties.Length;
@@ -134,7 +134,7 @@ namespace Apix.Db.Mysql
             var properties = GetOrAdd(type);
             var updateStatement = $"UPDATE {tableName}";
             var updateFields = new StringBuilder(" SET ");
-            var condition = new StringBuilder($" WHERE {identityName} = @{identityName}");
+            var condition = new StringBuilder($" WHERE `{identityName}` = @{identityName}");
             for (var i = 0; i < properties.Length; i++)
             {
                 if (!properties[i].Name.IsIgnoreCaseEqual(identityName))
@@ -143,7 +143,7 @@ namespace Apix.Db.Mysql
                     {
                         updateFields.Append(",");
                     }
-                    updateFields.Append("" + properties[i].Name + " = @" + properties[i].Name);
+                    updateFields.Append("`" + properties[i].Name + "` = @" + properties[i].Name);
                 }
             }
             return updateStatement + updateFields + condition;
@@ -167,7 +167,7 @@ namespace Apix.Db.Mysql
 
         private static string GenerateDeleteStatement(TypeInfo type, string tableName, string identityName)
         {
-            return $"DELETE FROM {tableName} WHERE {identityName} = @{identityName}";
+            return $"DELETE FROM `{tableName}` WHERE `{identityName}` = @{identityName}";
         }
         #endregion
 
@@ -196,8 +196,8 @@ namespace Apix.Db.Mysql
                     selectBody.Append(",");
                 selectBody.Append( properties[i].Name );
             }
-            selectBody.Append($" FROM {tableName}");
-            selectBody.Append($" WHERE {identityName} = @{identityName}");
+            selectBody.Append($" FROM `{tableName}`");
+            selectBody.Append($" WHERE `{identityName}` = @{identityName}");
             return selectBody.ToString();
         }
         #endregion

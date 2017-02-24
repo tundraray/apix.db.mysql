@@ -6,7 +6,7 @@
     "Apix"
   ],
   "packOptions": {
-    "name": "Apix.Dapper",
+    "name": "Apix.Db.Mysql",
     "summary": "Dapper Extension",
     "projectUrl": "https://apix.live",
     "licenseUrl": "https://apix.live",

@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace Apix.Db.Mysql
 {
-    public class PropertyCache : ConcurrentDictionary<RuntimeTypeHandle, Dictionary<string, PropertyInfo>>
+    public class PropertyCache : 
+        ConcurrentDictionary<RuntimeTypeHandle, Dictionary<string, PropertyInfo>>
     {
     }
 }
