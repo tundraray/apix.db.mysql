@@ -1,0 +1,31 @@
+# Sample bitbucket-pipelines.yml for building .NET Core libraries
+# and publishing them to www.myget.org.
+#
+# You can use a Docker image from Docker Hub or your own container
+# registry for your build environment.
+#
+# Requires environment variables to be configured:
+#   MYGET_NUGET_URL:      The full URL of the NuGet feed on MyGet
+#   MYGET_NUGET_APIKEY:   MyGet API key
+#   BUILD_CONFIGURATION:  Build configuration (Debug/Release)
+image: microsoft/dotnet:onbuild
+pipelines:
+  default:
+    - step:
+        script:
+          # Generate build number 
+          - BUILD_NUMBER=`printf "%06d" $(git log --oneline | wc -l)`
+          - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
+          #
+          # Restore packages
+          - dotnet restore src/project.json
+          # Build project
+          - dotnet build src/project.json
+          # Run tests (uncomment to run tests)
+          # - dotnet test
+          # Create package
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER src/project.json
+          # Push generated package(s)
+          - echo "Upload to':' ${MYGET_NUGET_URL}"
+          # Push generated package(s)
+          - "for file in src/bin/${BUILD_CONFIGURATION}/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
