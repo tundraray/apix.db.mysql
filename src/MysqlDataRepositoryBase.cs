@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Apix.Extensions;
 using Dapper;
+using MySql.Data.MySqlClient;
 
 namespace Apix.Db.Mysql
 {
@@ -28,14 +29,13 @@ namespace Apix.Db.Mysql
     /// <summary>
     /// Base SQL entity repository
     /// </summary>
-    public class DataRepositoryBase<T,TConn> 
+    public class MysqlDataRepositoryBase<T> 
         where T :  new()
-        where TConn : DbConnection, new ()
     {
         #region Privates
         private readonly Lazy<PropertyInfo[]> _propertiesThatExist = new Lazy<PropertyInfo[]>(() => DataRepositoryCache.GetOrAdd(typeof (T)));
         private static readonly object Obj = new object();
-        private readonly TConn _conn;
+        private readonly MySqlConnection _conn;
         #endregion
 
         #region Fields
@@ -44,7 +44,9 @@ namespace Apix.Db.Mysql
 
         #region Constructors
 
-        public DataRepositoryBase(TConn conn)
+        public MysqlDataRepositoryBase(string conn) : this(new MySqlConnection(conn)) { }
+
+        public MysqlDataRepositoryBase(MySqlConnection conn)
         {
             _conn = conn;
             _conn.Open();
@@ -62,7 +64,7 @@ namespace Apix.Db.Mysql
         /// <summary>
         /// Main SQL connection
         /// </summary>
-        public TConn Connection => _conn;
+        public MySqlConnection Connection => _conn;
 
 
         /// <summary>
