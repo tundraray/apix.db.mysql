@@ -18,28 +18,31 @@ namespace Apix.Db.Mysql
 
         public static PropertyInfo[] GetOrAdd(Type entityType)
         {
-            var properties = GlobalPropertiesCache.GetOrAdd(entityType.TypeHandle, key => 
+            var properties = GlobalPropertiesCache.GetOrAdd(entityType.TypeHandle, key =>
                                                                     (from p in entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                                                    let attr = p.GetCustomAttribute(typeof (NotDatabaseFieldAttribute))
-                                                                    where attr == null && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
-                                                                    select p).ToDictionary(p=>p.Name));
+                                                                     let attr = p.GetCustomAttribute(typeof(NotDatabaseFieldAttribute))
+                                                                     where attr == null && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
+                                                                     select p).ToDictionary(p => p.Name));
             return properties.Values.ToArray();
         }
     }
     /// <summary>
     /// Base SQL entity repository
     /// </summary>
-    public class MysqlDataRepositoryBase<T> 
-        where T :  new()
+    public class MysqlDataRepositoryBase<T> : IDisposable
+        where T : new()
     {
         #region Privates
-        private readonly Lazy<PropertyInfo[]> _propertiesThatExist = new Lazy<PropertyInfo[]>(() => DataRepositoryCache.GetOrAdd(typeof (T)));
+        private readonly Lazy<PropertyInfo[]> _propertiesThatExist = new Lazy<PropertyInfo[]>(() => DataRepositoryCache.GetOrAdd(typeof(T)));
         private static readonly object Obj = new object();
         private readonly MySqlConnection _conn;
         #endregion
 
         #region Fields
         protected string tableName = "";
+        private bool _disposed = false;
+        private readonly object objectLock = new object();
+
         #endregion
 
         #region Constructors
@@ -81,7 +84,7 @@ namespace Apix.Db.Mysql
         {
             get
             {
-                return tableName.IsNotNullOrEmpty()? tableName : EntityType.Name;
+                return tableName.IsNotNullOrEmpty() ? tableName : EntityType.Name;
             }
         }
 
@@ -96,7 +99,7 @@ namespace Apix.Db.Mysql
             await Connection.ExecuteAsync(SqlGenerator.InsertStatement<T>(TableName, IdentityName), entity).ConfigureAwait(false);
         }
 
-    
+
         /// <summary>
         /// Update entity
         /// </summary>
@@ -117,10 +120,10 @@ namespace Apix.Db.Mysql
         {
             return Connection.QueryAsync<T>(SqlGenerator.SelectAllStatement<T>(TableName));
         }
-      
-        public Task<T> GetByCriteriaAsync(Expression<Func<T, bool>> predicate,string tableName = null)
+
+        public Task<T> GetByCriteriaAsync(Expression<Func<T, bool>> predicate, string tableName = null)
         {
-            tableName = tableName.IsNullOrEmpty() ? TableName : tableName  ;
+            tableName = tableName.IsNullOrEmpty() ? TableName : tableName;
             var result = SqlGenerator.SelectQuery<T>(tableName, predicate);
             return Connection.QueryFirstOrDefaultAsync<T>(result.Sql, result.Param);
         }
@@ -196,7 +199,7 @@ namespace Apix.Db.Mysql
             var columnNames = new StringBuilder("(");
             var columnValues = new StringBuilder(" VALUES (");
             int propertiesCount = properties.Length;
-       
+
             for (int i = 0; i < propertiesCount; i++)
             {
                 if (i > 0)
@@ -223,7 +226,7 @@ namespace Apix.Db.Mysql
                 }
             }
             return insertStatement + columnNames + columnValues;
-        } 
+        }
         /// <summary>
         /// Generate INSERT statement
         /// </summary>
@@ -233,7 +236,7 @@ namespace Apix.Db.Mysql
         {
             var properties = DataRepositoryCache.GetOrAdd(type);
             return GenerateCreateStatement(properties);
-        } 
+        }
         /// <summary>
         /// Generate INSERT statement for repository entity
         /// </summary>
@@ -241,7 +244,7 @@ namespace Apix.Db.Mysql
         protected virtual string GenerateCreateStatement()
         {
             return GenerateCreateStatement(PropertiesThatExist);
-        } 
+        }
 
         #endregion
 
@@ -355,7 +358,32 @@ namespace Apix.Db.Mysql
         protected virtual string GenerateSelectAllStatement()
         {
             return GenerateSelectAllStatement(PropertiesThatExist);
-        } 
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            lock (objectLock)
+            {
+                if (_disposed == false && disposing == true)
+                {
+
+                    if (_conn != null)
+                    {
+                        _conn.Close();
+                        _conn.Dispose();
+                    }
+                    _disposed = true;
+
+                }
+            }
+        }
+
         #endregion
 
     }
