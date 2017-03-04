@@ -139,7 +139,7 @@ namespace Apix.Db.Mysql
                     {
                         updateFields.Append(",");
                     }
-                    updateFields.Append($"{properties[i].GetDatabaseFieldName()} = @{properties[i].Name}");
+                    updateFields.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
                 }
                 if (properties[i].IsDatabaseIdentity())
                 {
@@ -147,11 +147,11 @@ namespace Apix.Db.Mysql
                     {
                         condition.Append(" AND ");
                     }
-                    condition.Append($"{properties[i].GetDatabaseFieldName()} = @{properties[i].Name}");
+                    condition.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
                     conditionCounter++;
                 }
             }
-            return $"UPDATE {tableName} SET {updateFields} WHERE {condition}";
+            return $"UPDATE `{tableName}` SET {updateFields} WHERE {condition}";
         }
         #endregion
 
@@ -182,7 +182,7 @@ namespace Apix.Db.Mysql
                     {
                         condition.Append(" AND ");
                     }
-                    condition.Append($"{t.GetDatabaseFieldName()} = @{t.Name}");
+                    condition.Append($"`{t.GetDatabaseFieldName()}` = @{t.Name}");
                     conditionCounter++;
                 }
             }
@@ -191,11 +191,11 @@ namespace Apix.Db.Mysql
         #endregion
 
         #region Select All
+
         /// <summary>
         /// SQL SELECT (*)
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Table name</param>
         /// <returns>SQL statement</returns>
         public static string SelectAllQuery<T>()
         {
@@ -213,7 +213,7 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     selectBody.Append(",");
-                selectBody.Append($"{properties[i].GetDatabaseFieldName()}");
+                selectBody.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
             selectBody.Append($" FROM {tableName} ");
             return selectBody.ToString();
@@ -221,11 +221,11 @@ namespace Apix.Db.Mysql
         #endregion
 
         #region Select query
+
         /// <summary>
         /// Gets the dynamic SELECT query.
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Name of the table</param>
         /// <param name="properties">List of update properties</param>
         /// <returns></returns>
         public static SqlQueryResult SelectQuery<T>(IDictionary<string, object> properties)
@@ -238,7 +238,7 @@ namespace Apix.Db.Mysql
                     properties.Where(
                         p => entityProperties.Any(pr => pr.Name.IsIgnoreCaseEqual(p.Key))))
             {
-                whereFields.Append($" AND {p.Key} = @{p.Key}");
+                whereFields.Append($" AND `{p.Key}` = @{p.Key}");
                 parameters.Add(p.Key, p.Value);
             }
             return new SqlQueryResult(string.Concat(SelectAllQuery<T>(), whereFields), parameters);
@@ -247,7 +247,6 @@ namespace Apix.Db.Mysql
         /// Gets the dynamic SELECT query.
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Name of the table.</param>
         /// <param name="expression">The expression.</param>
         /// <returns>A result object with the generated sql and dynamic params.</returns>
         public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression)
@@ -270,7 +269,7 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     builder.Append(",");
-                builder.Append($"{properties[i].GetDatabaseFieldName()}");
+                builder.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
             builder.Append($" FROM {tableName} WHERE ");
             for (var i = 0; i < queryProperties.Count(); i++)
@@ -279,11 +278,11 @@ namespace Apix.Db.Mysql
 
                 if (!string.IsNullOrEmpty(item.LinkingOperator) && i > 0)
                 {
-                    builder.Append($"{item.LinkingOperator} {item.PropertyName} {item.QueryOperator} @{item.PropertyName} ");
+                    builder.Append($"{item.LinkingOperator} `{item.PropertyName}` {item.QueryOperator} @{item.PropertyName} ");
                 }
                 else
                 {
-                    builder.Append($"{item.PropertyName} {item.QueryOperator} @{item.PropertyName} ");
+                    builder.Append($"`{item.PropertyName}` {item.QueryOperator} @{item.PropertyName} ");
                 }
 
                 parameters.Add(item.PropertyName, item.PropertyValue);
