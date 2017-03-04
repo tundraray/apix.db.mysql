@@ -27,7 +27,7 @@ namespace Apix.Db.Mysql
         {
             var properties = GlobalPropertiesCache.GetOrAdd(entityType.AsType().TypeHandle, key =>
                    (from p in entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    where p.IsNotDatabaseField() && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
+                    where !p.IsNotDatabaseField() && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
                     select p).ToDictionary(p => p.Name));
 
             return properties.Values.ToArray();
@@ -271,7 +271,7 @@ namespace Apix.Db.Mysql
                     builder.Append(",");
                 builder.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
-            builder.Append($" FROM {tableName} WHERE ");
+            builder.Append($" FROM `{tableName}` WHERE ");
             for (var i = 0; i < queryProperties.Count(); i++)
             {
                 var item = queryProperties[i];
