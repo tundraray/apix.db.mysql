@@ -26,10 +26,10 @@ namespace Apix.Db.Mysql
         public static PropertyInfo[] GetOrAdd(TypeInfo entityType)
         {
             var properties = GlobalPropertiesCache.GetOrAdd(entityType.AsType().TypeHandle, key =>
-                                                                    (from p in entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                                                     let attr = p.GetCustomAttribute(typeof(NotRepositoryFieldAttribute))
-                                                                     where attr == null && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
-                                                                     select p).ToDictionary(p => p.Name));
+                   (from p in entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    where p.IsNotDatabaseField() && p.GetSetMethod(true) != null && p.GetGetMethod(true) != null
+                    select p).ToDictionary(p => p.Name));
+
             return properties.Values.ToArray();
         }
         private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
@@ -70,20 +70,19 @@ namespace Apix.Db.Mysql
         /// SQL INSERT
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Table name</param>
-        /// <param name="identityName">Identity name</param>
         /// <returns>SQL statement</returns>
-        public static string InsertStatement<T>(string tableName, string identityName)
+        public static string InsertQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
+            var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.Insert, tableName) ??
-                   AddQuery(type, SqlQueryType.Insert, tableName, GenerateInsertStatement(type, tableName, identityName));
+                   AddQuery(type, SqlQueryType.Insert, tableName, GenerateInsertQuery(type, tableName));
         }
 
-        private static string GenerateInsertStatement(TypeInfo type, string tableName, string identityName)
+        private static string GenerateInsertQuery(TypeInfo type, string tableName)
         {
-            var properties = GetOrAdd(type);
-            var insertStatement = $"INSERT INTO `{tableName}`";
+            var properties = GetOrAdd(type).Where(p=> !p.IsDatabaseAutoIncrement()).ToArray();
+            var insertStatement = $"INSERT INTO {tableName}";
             var columnNames = new StringBuilder("(");
             var columnValues = new StringBuilder(" VALUES (");
             var propertiesCount = properties.Length;
@@ -98,9 +97,7 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append(properties[i].Name.IsIgnoreCaseEqual(identityName)
-                    ? $"{identityName}"
-                    : $"{properties[i].Name}");
+                columnNames.Append( $"{properties[i].GetDatabaseFieldName()}");
 
                 columnValues.Append($"@{properties[i].Name}");
 
@@ -119,34 +116,42 @@ namespace Apix.Db.Mysql
         /// SQL UPDATE
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Table name</param>
-        /// <param name="identityName">Identity name</param>
         /// <returns>SQL statement</returns>
-        public static string UpdateStatement<T>(string tableName, string identityName)
+        public static string UpdateQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
+            var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.Update, tableName)
-                ?? AddQuery(type, SqlQueryType.Update, tableName, GenerateUpdateStatement(type, tableName, identityName));
+                ?? AddQuery(type, SqlQueryType.Update, tableName, GenerateUpdateQuery(type, tableName));
         }
 
-        private static string GenerateUpdateStatement(TypeInfo type, string tableName, string identityName)
+        private static string GenerateUpdateQuery(TypeInfo type, string tableName)
         {
             var properties = GetOrAdd(type);
-            var updateStatement = $"UPDATE {tableName}";
-            var updateFields = new StringBuilder(" SET ");
-            var condition = new StringBuilder($" WHERE `{identityName}` = @{identityName}");
+            var updateFields = new StringBuilder();
+            var condition = new StringBuilder();
+            var conditionCounter = 0;
             for (var i = 0; i < properties.Length; i++)
             {
-                if (!properties[i].Name.IsIgnoreCaseEqual(identityName))
+                if (!properties[i].IsDatabaseIdentity())
                 {
                     if (i > 0)
                     {
                         updateFields.Append(",");
                     }
-                    updateFields.Append("`" + properties[i].Name + "` = @" + properties[i].Name);
+                    updateFields.Append($"{properties[i].GetDatabaseFieldName()} = @{properties[i].Name}");
+                }
+                if (properties[i].IsDatabaseIdentity())
+                {
+                    if (conditionCounter > 0)
+                    {
+                        condition.Append(" AND ");
+                    }
+                    condition.Append($"{properties[i].GetDatabaseFieldName()} = @{properties[i].Name}");
+                    conditionCounter++;
                 }
             }
-            return updateStatement + updateFields + condition;
+            return $"UPDATE {tableName} SET {updateFields} WHERE {condition}";
         }
         #endregion
 
@@ -155,50 +160,33 @@ namespace Apix.Db.Mysql
         /// SQL DELETE
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Table name</param>
-        /// <param name="identityName">Identity name</param>
         /// <returns>SQL statement</returns>
-        public static string DeleteStatement<T>(string tableName, string identityName)
+        public static string DeleteQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
+            var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.Delete, tableName)
-                ?? AddQuery(type, SqlQueryType.Delete, tableName, GenerateDeleteStatement(type, tableName, identityName));
+                ?? AddQuery(type, SqlQueryType.Delete, tableName, GenerateDeleteQuery(type, tableName));
         }
 
-        private static string GenerateDeleteStatement(TypeInfo type, string tableName, string identityName)
-        {
-            return $"DELETE FROM `{tableName}` WHERE `{identityName}` = @{identityName}";
-        }
-        #endregion
-
-        #region Select by ID
-        /// <summary>
-        /// SQL DELETE
-        /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="tableName">Table name</param>
-        /// <param name="identityName">Identity name</param>
-        /// <returns>SQL statement</returns>
-        public static string SelectByIdStatement<T>(string tableName, string identityName)
-        {
-            var type = typeof(T).GetTypeInfo();
-            return GetQuery(type, SqlQueryType.SelectById, tableName)
-                ?? AddQuery(type, SqlQueryType.SelectById, tableName, GenerateSelectByIdStatement(type, tableName, identityName));
-        }
-
-        private static string GenerateSelectByIdStatement(TypeInfo type, string tableName, string identityName)
+        private static string GenerateDeleteQuery(TypeInfo type, string tableName)
         {
             var properties = GetOrAdd(type);
-            var selectBody = new StringBuilder("SELECT ");
-            for (var i = 0; i < properties.Length; i++)
+            var condition = new StringBuilder();
+            var conditionCounter = 0;
+            foreach (var t in properties)
             {
-                if (i > 0)
-                    selectBody.Append(",");
-                selectBody.Append( properties[i].Name );
+                if (t.IsDatabaseIdentity())
+                {
+                    if (conditionCounter > 0)
+                    {
+                        condition.Append(" AND ");
+                    }
+                    condition.Append($"{t.GetDatabaseFieldName()} = @{t.Name}");
+                    conditionCounter++;
+                }
             }
-            selectBody.Append($" FROM `{tableName}`");
-            selectBody.Append($" WHERE `{identityName}` = @{identityName}");
-            return selectBody.ToString();
+            return $"DELETE FROM `{tableName}` WHERE {condition}";
         }
         #endregion
 
@@ -209,14 +197,15 @@ namespace Apix.Db.Mysql
         /// <typeparam name="T">Entity type</typeparam>
         /// <param name="tableName">Table name</param>
         /// <returns>SQL statement</returns>
-        public static string SelectAllStatement<T>(string tableName)
+        public static string SelectAllQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
+            var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.SelectAll, tableName)
-                ?? AddQuery(type, SqlQueryType.SelectAll, tableName, GenerateSelectAllStatement(type, tableName));
+                ?? AddQuery(type, SqlQueryType.SelectAll, tableName, GenerateSelectAllQuery(type, tableName));
         }
 
-        private static string GenerateSelectAllStatement(TypeInfo type, string tableName)
+        private static string GenerateSelectAllQuery(TypeInfo type, string tableName)
         {
             var properties = GetOrAdd(type);
             var selectBody = new StringBuilder("SELECT ");
@@ -224,7 +213,7 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     selectBody.Append(",");
-                selectBody.Append($"{properties[i].Name}");
+                selectBody.Append($"{properties[i].GetDatabaseFieldName()}");
             }
             selectBody.Append($" FROM {tableName} ");
             return selectBody.ToString();
@@ -239,7 +228,7 @@ namespace Apix.Db.Mysql
         /// <param name="tableName">Name of the table</param>
         /// <param name="properties">List of update properties</param>
         /// <returns></returns>
-        public static SqlQueryResult SelectQuery<T>(string tableName, IDictionary<string, object> properties)
+        public static SqlQueryResult SelectQuery<T>(IDictionary<string, object> properties)
         {
             var whereFields = new StringBuilder();
             var entityProperties = GetOrAdd(typeof(T).GetTypeInfo());
@@ -252,7 +241,7 @@ namespace Apix.Db.Mysql
                 whereFields.Append($" AND {p.Key} = @{p.Key}");
                 parameters.Add(p.Key, p.Value);
             }
-            return new SqlQueryResult(string.Concat(SelectAllStatement<T>(tableName), whereFields), parameters);
+            return new SqlQueryResult(string.Concat(SelectAllQuery<T>(), whereFields), parameters);
         }
         /// <summary>
         /// Gets the dynamic SELECT query.
@@ -261,13 +250,15 @@ namespace Apix.Db.Mysql
         /// <param name="tableName">Name of the table.</param>
         /// <param name="expression">The expression.</param>
         /// <returns>A result object with the generated sql and dynamic params.</returns>
-        public static SqlQueryResult SelectQuery<T>(string tableName, Expression<Func<T, bool>> expression)
+        public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression)
         {
-            var properties = GetOrAdd(typeof(T).GetTypeInfo());
+            var type = typeof(T).GetTypeInfo();
+            var properties = GetOrAdd(type);
             var queryProperties = new List<QueryParameter>();
             var body = (BinaryExpression)expression.Body;
             var parameters = new DynamicParameters();
             var builder = new StringBuilder();
+            var tableName = type.GetTableName();
 
             // walk the tree and build up a list of query parameter objects
             // from the left and right branches of the expression tree
@@ -279,7 +270,7 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     builder.Append(",");
-                builder.Append($"{properties[i].Name}");
+                builder.Append($"{properties[i].GetDatabaseFieldName()}");
             }
             builder.Append($" FROM {tableName} WHERE ");
             for (var i = 0; i < queryProperties.Count(); i++)
@@ -309,7 +300,7 @@ namespace Apix.Db.Mysql
         {
             if (body.NodeType != ExpressionType.AndAlso && body.NodeType != ExpressionType.OrElse)
             {
-                var propertyName = ((MemberExpression)body.Left).Member.Name;
+                var propertyName = ((MemberExpression)body.Left).Member.GetDatabaseFieldName();
                 var propertyValue = Expression.Lambda(body.Right).Compile().DynamicInvoke();
                 var opr = GetOperator(body.NodeType);
                 var link = GetOperator(linkingType);

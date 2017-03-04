@@ -14,7 +14,7 @@ pipelines:
     - step:
         script:
           # Generate build number 
-          - BUILD_NUMBER=`printf "%06d" $(git log --oneline | wc -l)`
+          - BUILD_NUMBER=`printf "%03d" $(git log --oneline | wc -l)`
           - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
           #
           # Restore packages
