@@ -82,6 +82,16 @@ namespace Apix.Db.Mysql
             await Connection.ExecuteNonQueryAsync(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Create entity
+        /// </summary>
+        /// <param name="entity">Entity</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        public async Task<T> CreateAsyncWithResult(T entity, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await Connection.ExecuteQueryFirstOrDefaultAsync<T>(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region Update method 

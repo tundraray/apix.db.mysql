@@ -66,6 +66,7 @@ namespace Apix.Db.Mysql
         #endregion
 
         #region Insert
+
         /// <summary>
         /// SQL INSERT
         /// </summary>
@@ -81,13 +82,11 @@ namespace Apix.Db.Mysql
 
         private static string GenerateInsertQuery(TypeInfo type, string tableName)
         {
-            var properties = GetOrAdd(type).Where(p=> !p.IsDatabaseAutoIncrement()).ToArray();
-            var insertStatement = $"INSERT INTO {tableName}";
-            var columnNames = new StringBuilder("(");
-            var columnValues = new StringBuilder(" VALUES (");
+            var properties = GetOrAdd(type).Where(p => !p.IsDatabaseAutoIncrement()).ToArray();
+
+            var columnNames = new StringBuilder();
+            var columnValues = new StringBuilder();
             var propertiesCount = properties.Length;
-
-
 
             for (var i = 0; i < propertiesCount; i++)
             {
@@ -97,18 +96,69 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append( $"{properties[i].GetDatabaseFieldName()}");
+                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
 
                 columnValues.Append($"@{properties[i].Name}");
 
-                if (i == propertiesCount - 1)
+            }
+            var insertQuery = $"INSERT INTO {tableName} ({columnNames}) VALUES ({columnValues});";
+
+
+            return insertQuery;
+        }
+
+        public static string InsertQueryWithResult<T>()
+        {
+            var type = typeof(T).GetTypeInfo();
+            var tableName = type.GetTableName();
+            return GetQuery(type, SqlQueryType.Insert, tableName) ??
+                   AddQuery(type, SqlQueryType.Insert, tableName, GenerateInsertQueryWithResult(type, tableName));
+        }
+
+        private static string GenerateInsertQueryWithResult(TypeInfo type, string tableName)
+        {
+            var properties = GetOrAdd(type);
+         
+            var columnNames = new StringBuilder();
+            var columnValues = new StringBuilder();
+            var propertiesCount = properties.Length;
+
+            var selectQuery = SelectAllQuery(type);
+            var condition = new StringBuilder();
+            var conditionCounter = 0;
+
+            Ensure.Argument.Is(properties.Any(p => p.IsDatabaseAutoIncrement() || p.IsDatabaseIdentity()));
+            for (var i = 0; i < propertiesCount; i++)
+            {
+                if (i > 0)
                 {
-                    columnNames.Append(")");
-                    columnValues.Append(")");
+                    columnNames.Append(",");
+                    columnValues.Append(",");
+                }
+
+                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
+                columnValues.Append($"@{properties[i].Name}");
+           
+                if (conditionCounter > 0)
+                {
+                    condition.Append(" AND ");
+                }
+
+                if (properties[i].IsDatabaseIdentity() || properties[i].IsDatabaseAutoIncrement())
+                {
+                    var property = (properties[i].IsDatabaseAutoIncrement()
+                        ? "SCOPE_IDENTITY()"
+                        : "@" + properties[i].Name);
+                    condition.Append($"`{properties[i].GetDatabaseFieldName()}` = {property}");
+                    conditionCounter++;
                 }
             }
-            return insertStatement + columnNames + columnValues;
+
+
+            return $"INSERT INTO {tableName} ({columnNames}) VALUES ({columnValues});" +
+                   $"{selectQuery} WHERE ";
         }
+
         #endregion
 
         #region Update
@@ -200,6 +250,11 @@ namespace Apix.Db.Mysql
         public static string SelectAllQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
+            return SelectAllQuery(type);
+        }
+
+        public static string SelectAllQuery(TypeInfo type)
+        {
             var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.SelectAll, tableName)
                 ?? AddQuery(type, SqlQueryType.SelectAll, tableName, GenerateSelectAllQuery(type, tableName));

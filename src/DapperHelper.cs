@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using MySql.Data.MySqlClient;
 
 namespace Apix.Db.Mysql
 {
@@ -25,7 +25,7 @@ namespace Apix.Db.Mysql
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Output entities</returns>
-        public static Task<IEnumerable<T>> ExecuteQueryProcedureAsync<T>(this DbConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<T>> ExecuteQueryProcedureAsync<T>(this MySqlConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteQueryAsync(connection,
                 (c, ct) => c.QueryAsync<T>(
                     new CommandDefinition(spName, spParams, commandType: CommandType.StoredProcedure, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
@@ -38,7 +38,7 @@ namespace Apix.Db.Mysql
         /// <param name="spParams">Stored procedure input parameters</param>
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static Task ExecuteTransactNonQueryProcedureAsync(this DbConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task ExecuteTransactNonQueryProcedureAsync(this MySqlConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteWithTransactonAsync(connection,
                 (c, ct) => c.ExecuteAsync(
                     new CommandDefinition(spName, spParams, commandType: CommandType.StoredProcedure, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
@@ -51,7 +51,7 @@ namespace Apix.Db.Mysql
         /// <param name="spParams">Stored procedure input parameters</param>
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static Task ExecuteNonQueryProcedureAsync(this DbConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task ExecuteNonQueryProcedureAsync(this MySqlConnection connection, string spName, object spParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteNonQueryAsync(connection,
                     (c, ct) => c.ExecuteAsync(
                         new CommandDefinition(spName, spParams, commandType: CommandType.StoredProcedure, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
@@ -64,7 +64,7 @@ namespace Apix.Db.Mysql
         /// <param name="queryParams">SQL script parameters</param>
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static Task ExecuteNonQueryAsync(this DbConnection connection, string sqlScript, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task ExecuteNonQueryAsync(this MySqlConnection connection, string sqlScript, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteNonQueryAsync(connection,
                     (c, ct) => c.ExecuteAsync(
                         new CommandDefinition(sqlScript, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
@@ -77,18 +77,18 @@ namespace Apix.Db.Mysql
         /// <param name="queryParams">SQL script parameters</param>
         /// <param name="commandTimeout">Command run time-out</param>
         /// /// <param name="cancellationToken">Cancellation token</param>
-        public static Task ExecuteTransactionNonQueryAsync(this DbConnection connection, string sqlScript, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task ExecuteTransactionNonQueryAsync(this MySqlConnection connection, string sqlScript, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
            => ExecuteWithTransactonAsync(connection,
                    (c, ct) => c.ExecuteAsync(
                        new CommandDefinition(sqlScript, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
 
         /// <summary>
-        /// Asynchronous execute <see cref="Action{DbConnection}"/> with SQL connection
+        /// Asynchronous execute <see cref="Action{MySqlConnection}"/> with SQL connection
         /// </summary>
         /// <param name="connection">SQL connection</param>
         /// <param name="taskFunc">Run function</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static async Task ExecuteNonQueryAsync(this DbConnection connection, Func<DbConnection, CancellationToken, Task> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task ExecuteNonQueryAsync(this MySqlConnection connection, Func<MySqlConnection, CancellationToken, Task> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
@@ -107,7 +107,7 @@ namespace Apix.Db.Mysql
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Output entities</returns>
-        public static Task<IEnumerable<T>> ExecuteQueryAsync<T>(this DbConnection connection, string queryStatement, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<T>> ExecuteQueryAsync<T>(this MySqlConnection connection, string queryStatement, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteQueryAsync(connection,
                 (c, ct) => c.QueryAsync<T>(
                     new CommandDefinition(queryStatement, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
@@ -122,18 +122,18 @@ namespace Apix.Db.Mysql
         /// <param name="commandTimeout">Command run time-out</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Output first <see cref="T"/></returns>
-        public static Task<T> ExecuteQueryFirstOrDefaultAsync<T>(this DbConnection connection, string queryStatement, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<T> ExecuteQueryFirstOrDefaultAsync<T>(this MySqlConnection connection, string queryStatement, object queryParams = null, int commandTimeout = 30, CancellationToken cancellationToken = default(CancellationToken))
             => ExecuteQuerWithTransactonAsync(connection,
                 (c, ct) => c.QueryFirstOrDefaultAsync<T>(queryStatement, queryParams, commandTimeout: commandTimeout,transaction: ct), cancellationToken);
 
 
         /// <summary>
-        /// Asynchronous execute <see cref="Func{DbConnection, Task}"/> with SQL connection
+        /// Asynchronous execute <see cref="Func{MySqlConnection, Task}"/> with SQL connection
         /// </summary>
         /// <param name="connection">SQL connection</param>
         /// <param name="taskFunc">Run function</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static async Task<IEnumerable<T>> ExecuteQueryAsync<T>(this DbConnection connection, Func<DbConnection, CancellationToken, Task<IEnumerable<T>>> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<T>> ExecuteQueryAsync<T>(this MySqlConnection connection, Func<MySqlConnection, CancellationToken, Task<IEnumerable<T>>> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
@@ -143,12 +143,12 @@ namespace Apix.Db.Mysql
         }
 
         /// <summary>
-        /// Safe execute <see cref="Action{DbConnection}"/> with SQL connection inside transaction.
+        /// Safe execute <see cref="Action{MySqlConnection}"/> with SQL connection inside transaction.
         /// </summary>
         /// <param name="connection">SQL connection</param>
         /// <param name="taskFunc">Run fucntion</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static async Task ExecuteWithTransactonAsync(this DbConnection connection, Func<DbConnection, CancellationToken, Task> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task ExecuteWithTransactonAsync(this MySqlConnection connection, Func<MySqlConnection, CancellationToken, Task> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
@@ -168,13 +168,13 @@ namespace Apix.Db.Mysql
         }
 
         /// <summary>
-        /// Safe execute <see cref="Action{DbConnection}"/> with SQL connection inside transaction.
+        /// Safe execute <see cref="Action{MySqlConnection}"/> with SQL connection inside transaction.
         /// </summary>
         /// <param name="connection">SQL connection</param>
         /// <param name="taskFunc">Run fucntion</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Output first <see cref="T"/></returns>
-        public static async Task<T> ExecuteQuerWithTransactonAsync<T>(this DbConnection connection, Func<DbConnection, IDbTransaction, Task<T>> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<T> ExecuteQuerWithTransactonAsync<T>(this MySqlConnection connection, Func<MySqlConnection, IDbTransaction, Task<T>> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
@@ -203,7 +203,7 @@ namespace Apix.Db.Mysql
         /// <param name="entities">Input entities</param>
         /// <param name="action">Entity processing run action</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public static async Task TryExecuteBulkWithTransactionAsync<T>(this DbConnection connection, IEnumerable<T> entities, Func<DbConnection, T, Task> action, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task TryExecuteBulkWithTransactionAsync<T>(this MySqlConnection connection, IEnumerable<T> entities, Func<MySqlConnection, T, Task> action, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
