@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-*",
+  "version": "1.0.1-*",
   "name": "Apix.Db.Mysql",
   "description": "Dapper Extension",
   "authors": [
@@ -20,9 +20,9 @@
     }
   },
   "dependencies": {
-    "Apix.Framework": "1.0.0-beta-002",
+    "Apix.Framework": "1.0.0",
     "Dapper": "1.50.2",
-    "MySqlConnector": "0.13.0",
+    "MySqlConnector": "0.14.1",
     "System.Data.Common": "4.3.0",
     "System.Runtime.Serialization.Primitives": "4.3.0"
   },

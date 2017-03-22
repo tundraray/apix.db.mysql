@@ -10,14 +10,14 @@ namespace Apix.Db.Mysql
     /// <summary>
     /// Base SQL entity repository
     /// </summary>
-    public class MysqlDataRepositoryBase<T>
+    public abstract class MysqlDataRepositoryBase<T>
         where T : new()
     {
         #region Constructors
 
-        public MysqlDataRepositoryBase(string conn) : this(new MySqlConnection(conn)) { }
+        protected MysqlDataRepositoryBase(string conn) : this(new MySqlConnection(conn)) { }
 
-        public MysqlDataRepositoryBase(MySqlConnection conn)
+        protected MysqlDataRepositoryBase(MySqlConnection conn)
         {
             Connection = conn;
         }
@@ -77,9 +77,9 @@ namespace Apix.Db.Mysql
         /// </summary>
         /// <param name="entity">Entity</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public async Task CreateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
+        public Task CreateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await Connection.ExecuteNonQueryAsync(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Connection.ExecuteNonQueryAsync(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -87,9 +87,9 @@ namespace Apix.Db.Mysql
         /// </summary>
         /// <param name="entity">Entity</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public async Task<T> CreateAsyncWithResult(T entity, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<T> CreateAsyncWithResult(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await Connection.ExecuteQueryFirstOrDefaultAsync<T>(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Connection.ExecuteQueryFirstOrDefaultAsync<T>(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         #endregion
@@ -101,9 +101,9 @@ namespace Apix.Db.Mysql
         /// </summary>
         /// <param name="entity">Entity</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        public async Task UpdateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
+        public Task UpdateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await Connection.ExecuteNonQueryAsync(SqlGenerator.UpdateQuery<T>(), entity, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Connection.ExecuteNonQueryAsync(SqlGenerator.UpdateQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         #endregion
