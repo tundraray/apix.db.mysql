@@ -1,5 +1,3 @@
-# Sample bitbucket-pipelines.yml for building .NET Core libraries
-# and publishing them to www.myget.org.
 image: microsoft/aspnetcore-build
 pipelines:
   default:
@@ -16,7 +14,7 @@ pipelines:
           # Run tests (uncomment to run tests)
           # - dotnet test
           # Create package
-          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER --output ../../build
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix beta-${BUILD_NUMBER} --output ../../build --verbosity d
           # Push generated package(s)
           - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
           # Push generated package(s)
@@ -36,7 +34,7 @@ pipelines:
             # Run tests (uncomment to run tests)
             # - dotnet test
             # Create package
-            - dotnet pack --configuration ${BUILD_CONFIGURATION} --output ../../build
+            - dotnet pack --configuration ${BUILD_CONFIGURATION} --output ../../build --verbosity d
             # Push generated package(s)
             - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
             # Push generated package(s)

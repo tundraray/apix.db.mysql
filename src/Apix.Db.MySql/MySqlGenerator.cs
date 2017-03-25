@@ -11,9 +11,9 @@ using Dapper;
 namespace Apix.Db.Mysql
 {
     /// <summary>
-    /// SQL generator
+    /// MySql generator
     /// </summary>
-    public static class SqlGenerator
+    public static class MySqlGenerator
     {
         #region Cache
 
@@ -21,8 +21,8 @@ namespace Apix.Db.Mysql
         /// <summary>
         /// Get entity properties
         /// </summary>
-        /// <param name="entityType">Entity type</param>
-        /// <returns>List of entity properties excluding marked as <see cref="NotRepositoryFieldAttribute"/></returns>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
         public static PropertyInfo[] GetOrAdd(TypeInfo entityType)
         {
             var properties = GlobalPropertiesCache.GetOrAdd(entityType.AsType().TypeHandle, key =>
@@ -33,13 +33,14 @@ namespace Apix.Db.Mysql
             return properties.Values.ToArray();
         }
         private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
+
         /// <summary>
-        /// Get SQL query string
+        /// Get MySql query string
         /// </summary>
-        /// <param name="type">Repository type</param>
-        /// <param name="queryType">Query type</param>
-        /// <param name="tableName">Repository table name</param>
-        /// <returns>Stored SQL query string</returns>
+        /// <param name="type"></param>
+        /// <param name="queryType"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public static string GetQuery(TypeInfo type, string queryType, string tableName)
         {
             string query;
@@ -52,26 +53,28 @@ namespace Apix.Db.Mysql
             return string.Join("_", type.Name, queryType, tableName);
         }
         /// <summary>
-        /// Add SQL query string
+        /// Add query string
         /// </summary>
-        /// <param name="type">Repository type</param>
-        /// <param name="queryType">Query type</param>
-        /// <param name="tableName">Repository table name</param>
-        /// <param name="query">Storing SQL query string</param>
+        /// <param name="type"></param>
+        /// <param name="queryType"></param>
+        /// <param name="tableName"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public static string AddQuery(TypeInfo type, string queryType, string tableName, string query)
         {
             var key = GetKey(type, queryType, tableName);
             return Cache.GetOrAdd(key, k => query);
         }
+
         #endregion
 
         #region Insert
 
         /// <summary>
-        /// SQL INSERT
+        /// MySql INSERT
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static string InsertQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -163,10 +166,10 @@ namespace Apix.Db.Mysql
 
         #region Update
         /// <summary>
-        /// SQL UPDATE
+        /// MySql UPDATE
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static string UpdateQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -206,11 +209,12 @@ namespace Apix.Db.Mysql
         #endregion
 
         #region Delete
+
         /// <summary>
-        /// SQL DELETE
+        /// MySql DELETE
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static string DeleteQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -243,10 +247,10 @@ namespace Apix.Db.Mysql
         #region Select All
 
         /// <summary>
-        /// SQL SELECT (*)
+        /// MySql SELECT (*)
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static string SelectAllQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -277,12 +281,12 @@ namespace Apix.Db.Mysql
 
 
         /// <summary>
-        /// SQL SELECT (*)
+        /// MySql SELECT (*)
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
-        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
-        /// <returns>SQL statement</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="limit"></param>
+        /// <param name="offet"></param>
+        /// <returns></returns>
         public static string SelectAllQuery<T>(long limit, ulong offet = 0)
         {
             var type = typeof(T).GetTypeInfo();
@@ -318,10 +322,10 @@ namespace Apix.Db.Mysql
         #region Select query
 
         /// <summary>
-        /// Gets the dynamic SELECT query.
+        /// Gets dynamic SELECT query.
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="properties">List of update properties</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="properties"></param>
         /// <returns></returns>
         public static SqlQueryResult SelectQuery<T>(IDictionary<string, object> properties)
         {
@@ -343,11 +347,11 @@ namespace Apix.Db.Mysql
         /// <summary>
         /// Gets the dynamic SELECT query.
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <param name="expression">The expression.</param>
-        /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
-        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
-        /// <returns>A result object with the generated sql and dynamic params.</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="expression"></param>
+        /// <param name="offet"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression, ulong offet = 0, long limit = -1)
         {
             var type = typeof(T).GetTypeInfo();
@@ -362,7 +366,7 @@ namespace Apix.Db.Mysql
             // from the left and right branches of the expression tree
             WalkTree(body, ExpressionType.Default, ref queryProperties);
 
-            // convert the query parms into a SQL string and dynamic property object
+            // convert the query parms into a MySql string and dynamic property object
             builder.Append("SELECT ");
             for (var i = 0; i < properties.Length; i++)
             {
@@ -392,12 +396,13 @@ namespace Apix.Db.Mysql
             }
             return new SqlQueryResult(builder.ToString().TrimEnd(), parameters);
         }
+
         /// <summary>
-        /// Walks the tree.
+        /// http://stackoverflow.com/questions/33484295/dynamic-queries-in-dapper
         /// </summary>
-        /// <param name="body">The body.</param>
-        /// <param name="linkingType">Type of the linking.</param>
-        /// <param name="queryProperties">The query properties.</param>
+        /// <param name="body"></param>
+        /// <param name="linkingType"></param>
+        /// <param name="queryProperties"></param>
         private static void WalkTree(BinaryExpression body, ExpressionType linkingType, ref List<QueryParameter> queryProperties)
         {
             if (body.NodeType != ExpressionType.AndAlso && body.NodeType != ExpressionType.OrElse)
@@ -416,12 +421,10 @@ namespace Apix.Db.Mysql
             }
         }
         /// <summary>
-        /// Gets the operator.
+        /// 
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>
-        /// The expression types SQL server equivalent operator.
-        /// </returns>
+        /// <param name="type"></param>
+        /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
         private static string GetOperator(ExpressionType type)
         {
@@ -450,9 +453,6 @@ namespace Apix.Db.Mysql
         #endregion
     }
 
-    /// <summary>
-    /// Class that models the data structure in coverting the expression tree into SQL and Params.
-    /// </summary>
     internal class QueryParameter
     {
         public string LinkingOperator { get; set; }
@@ -461,12 +461,12 @@ namespace Apix.Db.Mysql
         public string QueryOperator { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryParameter" /> class.
+        /// 
         /// </summary>
-        /// <param name="linkingOperator">The linking operator.</param>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <param name="propertyValue">The property value.</param>
-        /// <param name="queryOperator">The query operator.</param>
+        /// <param name="linkingOperator"></param>
+        /// <param name="propertyName"></param>
+        /// <param name="propertyValue"></param>
+        /// <param name="queryOperator"></param>
         internal QueryParameter(string linkingOperator, string propertyName, object propertyValue, string queryOperator)
         {
             LinkingOperator = linkingOperator;
