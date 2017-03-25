@@ -16,7 +16,7 @@ pipelines:
           # Run tests (uncomment to run tests)
           # - dotnet test
           # Create package
-          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER 
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER --output ../../build
           # Push generated package(s)
           - echo "Upload to':' ${MYGET_NUGET_URL}"
           # Push generated package(s)
@@ -36,7 +36,7 @@ pipelines:
             # Run tests (uncomment to run tests)
             # - dotnet test
             # Create package
-            - dotnet pack --configuration ${BUILD_CONFIGURATION}
+            - dotnet pack --configuration ${BUILD_CONFIGURATION} --output ../../build
             # Push generated package(s)
             - echo "Upload to':' ${MYGET_NUGET_URL}"
             # Push generated package(s)

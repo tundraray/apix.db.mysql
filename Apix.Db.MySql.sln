@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{581CAF
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apix.Db.MySql", "src\Apix.Db.MySql.csproj", "{971999DE-DA67-4E74-8AFA-33600E95F153}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apix.Db.MySql", "src\Apix.Db.MySql\Apix.Db.MySql.csproj", "{971999DE-DA67-4E74-8AFA-33600E95F153}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
