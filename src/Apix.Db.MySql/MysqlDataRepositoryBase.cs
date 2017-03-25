@@ -8,7 +8,7 @@ using MySql.Data.MySqlClient;
 namespace Apix.Db.Mysql
 {
     /// <summary>
-    /// Base SQL entity repository
+    /// Base MySql repository
     /// </summary>
     public abstract class MysqlDataRepositoryBase<T>
         where T : new()
@@ -27,7 +27,7 @@ namespace Apix.Db.Mysql
         #region Properties
 
         /// <summary>
-        /// Main SQL connection
+        /// Main MySql connection
         /// </summary>
         protected MySqlConnection Connection { get; }
 

@@ -13,10 +13,10 @@ namespace Apix.Db.Mysql
         /// </summary>
         private readonly Tuple<string, DynamicParameters> _result;
         /// <summary>
-        /// Gets the SQL.
+        /// Gets the MySql.
         /// </summary>
         /// <value>
-        /// The SQL.
+        /// The MySql.
         /// </value>
         public string Sql => _result.Item1;
         /// <summary>
@@ -29,7 +29,7 @@ namespace Apix.Db.Mysql
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlQueryResult" /> class.
         /// </summary>
-        /// <param name="sql">The SQL.</param>
+        /// <param name="sql">The MySql.</param>
         /// <param name="param">The param.</param>
         public SqlQueryResult(string sql, DynamicParameters param)
         {

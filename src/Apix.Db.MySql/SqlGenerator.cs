@@ -11,7 +11,7 @@ using Dapper;
 namespace Apix.Db.Mysql
 {
     /// <summary>
-    /// SQL generator
+    /// MySql generator
     /// </summary>
     public static class SqlGenerator
     {
@@ -34,12 +34,12 @@ namespace Apix.Db.Mysql
         }
         private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
         /// <summary>
-        /// Get SQL query string
+        /// Get MySql query string
         /// </summary>
         /// <param name="type">Repository type</param>
         /// <param name="queryType">Query type</param>
         /// <param name="tableName">Repository table name</param>
-        /// <returns>Stored SQL query string</returns>
+        /// <returns>Stored MySql query string</returns>
         public static string GetQuery(TypeInfo type, string queryType, string tableName)
         {
             string query;
@@ -52,12 +52,12 @@ namespace Apix.Db.Mysql
             return string.Join("_", type.Name, queryType, tableName);
         }
         /// <summary>
-        /// Add SQL query string
+        /// Add MySql query string
         /// </summary>
         /// <param name="type">Repository type</param>
         /// <param name="queryType">Query type</param>
         /// <param name="tableName">Repository table name</param>
-        /// <param name="query">Storing SQL query string</param>
+        /// <param name="query">Storing MySql query string</param>
         public static string AddQuery(TypeInfo type, string queryType, string tableName, string query)
         {
             var key = GetKey(type, queryType, tableName);
@@ -68,10 +68,10 @@ namespace Apix.Db.Mysql
         #region Insert
 
         /// <summary>
-        /// SQL INSERT
+        /// MySql INSERT
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <returns>MySql statement</returns>
         public static string InsertQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -163,10 +163,10 @@ namespace Apix.Db.Mysql
 
         #region Update
         /// <summary>
-        /// SQL UPDATE
+        /// MySql UPDATE
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <returns>MySql statement</returns>
         public static string UpdateQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -207,10 +207,10 @@ namespace Apix.Db.Mysql
 
         #region Delete
         /// <summary>
-        /// SQL DELETE
+        /// MySql DELETE
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <returns>MySql statement</returns>
         public static string DeleteQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -243,10 +243,10 @@ namespace Apix.Db.Mysql
         #region Select All
 
         /// <summary>
-        /// SQL SELECT (*)
+        /// MySql SELECT (*)
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>SQL statement</returns>
+        /// <returns>MySql statement</returns>
         public static string SelectAllQuery<T>()
         {
             var type = typeof(T).GetTypeInfo();
@@ -277,12 +277,12 @@ namespace Apix.Db.Mysql
 
 
         /// <summary>
-        /// SQL SELECT (*)
+        /// MySql SELECT (*)
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
         /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
-        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
-        /// <returns>SQL statement</returns>
+        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a MySql statement</param>
+        /// <returns>MySql statement</returns>
         public static string SelectAllQuery<T>(long limit, ulong offet = 0)
         {
             var type = typeof(T).GetTypeInfo();
@@ -346,7 +346,7 @@ namespace Apix.Db.Mysql
         /// <typeparam name="T">Entity type</typeparam>
         /// <param name="expression">The expression.</param>
         /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
-        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
+        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a MySql statement</param>
         /// <returns>A result object with the generated sql and dynamic params.</returns>
         public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression, ulong offet = 0, long limit = -1)
         {
@@ -362,7 +362,7 @@ namespace Apix.Db.Mysql
             // from the left and right branches of the expression tree
             WalkTree(body, ExpressionType.Default, ref queryProperties);
 
-            // convert the query parms into a SQL string and dynamic property object
+            // convert the query parms into a MySql string and dynamic property object
             builder.Append("SELECT ");
             for (var i = 0; i < properties.Length; i++)
             {
@@ -420,7 +420,7 @@ namespace Apix.Db.Mysql
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// The expression types SQL server equivalent operator.
+        /// The expression types MySql server equivalent operator.
         /// </returns>
         /// <exception cref="System.NotImplementedException"></exception>
         private static string GetOperator(ExpressionType type)
@@ -451,7 +451,7 @@ namespace Apix.Db.Mysql
     }
 
     /// <summary>
-    /// Class that models the data structure in coverting the expression tree into SQL and Params.
+    /// Class that models the data structure in coverting the expression tree into MySql and Params.
     /// </summary>
     internal class QueryParameter
     {
