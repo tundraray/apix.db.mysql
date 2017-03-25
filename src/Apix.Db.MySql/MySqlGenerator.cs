@@ -50,7 +50,7 @@ namespace Apix.Db.Mysql
 
         private static string GetKey(TypeInfo type, string queryType, string tableName)
         {
-            return string.Join("_", type.Name, queryType, tableName);
+            return string.Join("_", type.AssemblyQualifiedName, queryType, tableName);
         }
         /// <summary>
         /// Add query string
