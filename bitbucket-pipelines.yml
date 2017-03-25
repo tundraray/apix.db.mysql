@@ -20,7 +20,7 @@ pipelines:
           # Push generated package(s)
           - echo "Upload to':' ${MYGET_NUGET_URL}"
           # Push generated package(s)
-          - "for file in build/${BUILD_CONFIGURATION}/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
+          - "for file in build/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
   branches:
     master:
       - step:
@@ -40,4 +40,4 @@ pipelines:
             # Push generated package(s)
             - echo "Upload to':' ${MYGET_NUGET_URL}"
             # Push generated package(s)
-            - "for file in build/${BUILD_CONFIGURATION}/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
+            - "for file in build/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
