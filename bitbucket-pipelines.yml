@@ -18,9 +18,9 @@ pipelines:
           # Create package
           - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER --output ../../build
           # Push generated package(s)
-          - echo "Upload to':' ${MYGET_NUGET_URL}"
+          - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} --verbosity detailed
           # Push generated package(s)
-          - "for file in build/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
+          - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
   branches:
     master:
       - step:
@@ -38,6 +38,6 @@ pipelines:
             # Create package
             - dotnet pack --configuration ${BUILD_CONFIGURATION} --output ../../build
             # Push generated package(s)
-            - echo "Upload to':' ${MYGET_NUGET_URL}"
+            - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} --verbosity detailed
             # Push generated package(s)
-            - "for file in build/*.nupkg; do curl -X PUT \"${MYGET_NUGET_URL}\" -H \"X-NuGet-ApiKey: ${MYGET_NUGET_APIKEY}\" -T $file; done"
+            - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
