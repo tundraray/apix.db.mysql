@@ -118,7 +118,7 @@ namespace Apix.Db.Mysql
         private static string GenerateInsertQueryWithResult(TypeInfo type, string tableName)
         {
             var properties = GetOrAdd(type);
-         
+
             var columnNames = new StringBuilder();
             var columnValues = new StringBuilder();
             var propertiesCount = properties.Length;
@@ -138,7 +138,7 @@ namespace Apix.Db.Mysql
 
                 columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
                 columnValues.Append($"@{properties[i].Name}");
-           
+
                 if (conditionCounter > 0)
                 {
                     condition.Append(" AND ");
@@ -271,6 +271,46 @@ namespace Apix.Db.Mysql
                 selectBody.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
             selectBody.Append($" FROM {tableName} ");
+
+            return selectBody.ToString();
+        }
+
+
+        /// <summary>
+        /// SQL SELECT (*)
+        /// </summary>
+        /// <typeparam name="T">Entity type</typeparam>
+        /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
+        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
+        /// <returns>SQL statement</returns>
+        public static string SelectAllQuery<T>(long limit, ulong offet = 0)
+        {
+            var type = typeof(T).GetTypeInfo();
+            return SelectAllQuery(type, offet, limit);
+        }
+
+        public static string SelectAllQuery(TypeInfo type, ulong offet, long limit)
+        {
+            var tableName = type.GetTableName();
+            return GetQuery(type, SqlQueryType.SelectAllWithLimit, tableName)
+                ?? AddQuery(type, SqlQueryType.SelectAllWithLimit, tableName, GenerateSelectAllQuery(type, tableName, offet, limit));
+        }
+
+        private static string GenerateSelectAllQuery(TypeInfo type, string tableName, ulong offet, long limit)
+        {
+            var properties = GetOrAdd(type);
+            var selectBody = new StringBuilder("SELECT ");
+            for (var i = 0; i < properties.Length; i++)
+            {
+                if (i > 0)
+                    selectBody.Append(",");
+                selectBody.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
+            }
+            selectBody.Append($" FROM {tableName} ");
+            if (limit > 0)
+            {
+                selectBody.Append($" LIMIT {limit} OFFSET {offet}");
+            }
             return selectBody.ToString();
         }
         #endregion
@@ -296,15 +336,19 @@ namespace Apix.Db.Mysql
                 whereFields.Append($" AND `{p.Key}` = @{p.Key}");
                 parameters.Add(p.Key, p.Value);
             }
+
             return new SqlQueryResult(string.Concat(SelectAllQuery<T>(), whereFields), parameters);
         }
+
         /// <summary>
         /// Gets the dynamic SELECT query.
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
         /// <param name="expression">The expression.</param>
+        /// <param name="offet">OFFSET says to skip that many rows before beginning to return rows</param>
+        /// <param name="limit">The LIMIT clause is used to limit the number of results returned in a SQL statement</param>
         /// <returns>A result object with the generated sql and dynamic params.</returns>
-        public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression)
+        public static SqlQueryResult SelectQuery<T>(Expression<Func<T, bool>> expression, ulong offet = 0, long limit = -1)
         {
             var type = typeof(T).GetTypeInfo();
             var properties = GetOrAdd(type);
@@ -341,6 +385,10 @@ namespace Apix.Db.Mysql
                 }
 
                 parameters.Add(item.PropertyName, item.PropertyValue);
+            }
+            if (limit > 0)
+            {
+                builder.Append($" LIMIT {limit} OFFSET {offet}");
             }
             return new SqlQueryResult(builder.ToString().TrimEnd(), parameters);
         }

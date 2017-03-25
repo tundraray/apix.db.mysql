@@ -55,6 +55,17 @@ namespace Apix.Db.Mysql
             return Connection.ExecuteQueryAsync<T>(SqlGenerator.SelectAllQuery<T>(), cancellationToken: cancellationToken);
         }
 
+
+        /// <summary>
+        /// List all entities with pagination
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of stored entities</returns>
+        public Task<IEnumerable<T>> ListAllAsync(long limit, ulong offset, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Connection.ExecuteQueryAsync<T>(SqlGenerator.SelectAllQuery<T>(limit, offset), cancellationToken: cancellationToken);
+        }
+
         /// <summary>
         /// Find entities by expression predicate
         /// </summary>
@@ -65,6 +76,19 @@ namespace Apix.Db.Mysql
         {
             Ensure.Argument.NotNull(predicate, nameof(predicate));
             var result = SqlGenerator.SelectQuery(predicate);
+            return Connection.ExecuteQueryAsync<T>(result.Sql, result.Param, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Find entities by expression predicate with pagination
+        /// </summary>
+        /// <param name="predicate">Expression predicate</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of stored entities</returns>
+        public Task<IEnumerable<T>> ListByQueryAsync(Expression<Func<T, bool>> predicate, long limit, ulong offset, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.Argument.NotNull(predicate, nameof(predicate));
+            var result = SqlGenerator.SelectQuery(predicate, offset,limit);
             return Connection.ExecuteQueryAsync<T>(result.Sql, result.Param, cancellationToken: cancellationToken);
         }
 

@@ -7,6 +7,7 @@
         public const string Update = "Update";
         public const string Create = "Create";
         public const string SelectAll = "SelectAll";
+        public const string SelectAllWithLimit = "SelectAllWithLimit";
         public const string Delete = "Delete";
     }
 }
