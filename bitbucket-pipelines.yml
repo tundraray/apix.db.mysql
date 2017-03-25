@@ -1,0 +1,43 @@
+# Sample bitbucket-pipelines.yml for building .NET Core libraries
+# and publishing them to www.myget.org.
+image: microsoft/aspnetcore-build
+pipelines:
+  default:
+    - step:
+        script:
+          # Generate build number 
+          - BUILD_NUMBER=`printf "%03d" $(git log --oneline | wc -l)`
+          - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
+          #
+          # Restore packages
+          - dotnet restore
+          # Build project
+          - dotnet build
+          # Run tests (uncomment to run tests)
+          # - dotnet test
+          # Create package
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix beta-${BUILD_NUMBER} --output ../../build --verbosity d
+          # Push generated package(s)
+          - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
+          # Push generated package(s)
+          - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
+  branches:
+    master:
+      - step:
+          script:
+            # Generate build number 
+            - BUILD_NUMBER=`printf "%03d" $(git log --oneline | wc -l)`
+            - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
+            #
+            # Restore packages
+            - dotnet restore
+            # Build project
+            - dotnet build
+            # Run tests (uncomment to run tests)
+            # - dotnet test
+            # Create package
+            - dotnet pack --configuration ${BUILD_CONFIGURATION} --output ../../build --verbosity d
+            # Push generated package(s)
+            - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
+            # Push generated package(s)
+            - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
