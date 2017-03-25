@@ -185,7 +185,37 @@ namespace Apix.Db.Mysql
                 return result;
             }
         }
-       
+
+        public static async Task ExecuteWithTransactonAsync(
+            this MySqlConnection connection,
+            Func<MySqlConnection, CancellationToken, Task> taskFunc,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (connection)
+            {
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                var transaction = connection.BeginTransaction();
+                try
+                {
+                    await taskFunc(connection, cancellationToken).ConfigureAwait(false);
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+        public static Task ExecuteTransactionNonQueryAsync(
+            this MySqlConnection connection,
+            string query,
+            object queryParams = null,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default(CancellationToken))
+           => ExecuteWithTransactonAsync(connection,
+                   (c, ct) => c.ExecuteAsync(
+                       new CommandDefinition(query, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
 
         #endregion
     }
