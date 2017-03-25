@@ -1,5 +1,3 @@
-# Sample bitbucket-pipelines.yml for building .NET Core libraries
-# and publishing them to www.myget.org.
 image: microsoft/aspnetcore-build
 pipelines:
   default:

@@ -37,7 +37,7 @@ namespace Apix.Db.Mysql
 
         public Task<T> GetByQueryAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var result = SqlGenerator.SelectQuery(predicate);
+            var result = MySqlGenerator.SelectQuery(predicate);
             return Connection.ExecuteQueryFirstOrDefaultAsync<T>(result.Sql, result.Param, cancellationToken: cancellationToken);
         }
 
@@ -52,7 +52,7 @@ namespace Apix.Db.Mysql
         /// <returns>List of stored entities</returns>
         public Task<IEnumerable<T>> ListAllAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteQueryAsync<T>(SqlGenerator.SelectAllQuery<T>(), cancellationToken: cancellationToken);
+            return Connection.ExecuteQueryAsync<T>(MySqlGenerator.SelectAllQuery<T>(), cancellationToken: cancellationToken);
         }
 
 
@@ -63,7 +63,7 @@ namespace Apix.Db.Mysql
         /// <returns>List of stored entities</returns>
         public Task<IEnumerable<T>> ListAllAsync(long limit, ulong offset, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteQueryAsync<T>(SqlGenerator.SelectAllQuery<T>(limit, offset), cancellationToken: cancellationToken);
+            return Connection.ExecuteQueryAsync<T>(MySqlGenerator.SelectAllQuery<T>(limit, offset), cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Apix.Db.Mysql
         public Task<IEnumerable<T>> ListByQueryAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.Argument.NotNull(predicate, nameof(predicate));
-            var result = SqlGenerator.SelectQuery(predicate);
+            var result = MySqlGenerator.SelectQuery(predicate);
             return Connection.ExecuteQueryAsync<T>(result.Sql, result.Param, cancellationToken: cancellationToken);
         }
 
@@ -88,7 +88,7 @@ namespace Apix.Db.Mysql
         public Task<IEnumerable<T>> ListByQueryAsync(Expression<Func<T, bool>> predicate, long limit, ulong offset, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.Argument.NotNull(predicate, nameof(predicate));
-            var result = SqlGenerator.SelectQuery(predicate, offset,limit);
+            var result = MySqlGenerator.SelectQuery(predicate, offset,limit);
             return Connection.ExecuteQueryAsync<T>(result.Sql, result.Param, cancellationToken: cancellationToken);
         }
 
@@ -103,7 +103,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken">Cancellation token</param>
         public Task CreateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteNonQueryAsync(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
+            return Connection.ExecuteNonQueryAsync(MySqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken">Cancellation token</param>
         public Task<T> CreateAsyncWithResult(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteQueryFirstOrDefaultAsync<T>(SqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
+            return Connection.ExecuteQueryFirstOrDefaultAsync<T>(MySqlGenerator.InsertQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         #endregion
@@ -127,7 +127,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken">Cancellation token</param>
         public Task UpdateAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteNonQueryAsync(SqlGenerator.UpdateQuery<T>(), entity, cancellationToken: cancellationToken);
+            return Connection.ExecuteNonQueryAsync(MySqlGenerator.UpdateQuery<T>(), entity, cancellationToken: cancellationToken);
         }
 
         #endregion
