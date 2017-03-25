@@ -1,6 +1,6 @@
 # Sample bitbucket-pipelines.yml for building .NET Core libraries
 # and publishing them to www.myget.org.
-image: microsoft/dotnet:onbuild
+image: microsoft/aspnetcore-build
 pipelines:
   default:
     - step:
@@ -10,13 +10,13 @@ pipelines:
           - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
           #
           # Restore packages
-          - dotnet restore src/project.json
+          - dotnet restore
           # Build project
-          - dotnet build src/project.json
+          - dotnet build
           # Run tests (uncomment to run tests)
           # - dotnet test
           # Create package
-          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER src/project.json
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix=beta-$BUILD_NUMBER 
           # Push generated package(s)
           - echo "Upload to':' ${MYGET_NUGET_URL}"
           # Push generated package(s)
@@ -30,13 +30,13 @@ pipelines:
             - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
             #
             # Restore packages
-            - dotnet restore src/project.json
+            - dotnet restore
             # Build project
-            - dotnet build src/project.json
+            - dotnet build
             # Run tests (uncomment to run tests)
             # - dotnet test
             # Create package
-            - dotnet pack --configuration ${BUILD_CONFIGURATION} src/project.json
+            - dotnet pack --configuration ${BUILD_CONFIGURATION}
             # Push generated package(s)
             - echo "Upload to':' ${MYGET_NUGET_URL}"
             # Push generated package(s)
