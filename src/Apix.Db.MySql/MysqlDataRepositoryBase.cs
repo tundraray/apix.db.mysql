@@ -10,7 +10,7 @@ namespace Apix.Db.Mysql
     /// <summary>
     /// Base MySql repository
     /// </summary>
-    public abstract class MysqlDataRepositoryBase<T>
+    public abstract class MysqlDataRepositoryBase<T>: IDisposable
         where T : new()
     {
         #region Constructors
@@ -141,6 +141,28 @@ namespace Apix.Db.Mysql
 
         #endregion
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (Connection != null)
+                {
+                    MySqlConnection.ClearPool(Connection);
+                    Connection.Dispose();
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~MysqlDataRepositoryBase()
+        {
+            Dispose(false);
+        }
     }
 
 }
