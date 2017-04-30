@@ -26,7 +26,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<IEnumerable<T>> ExecuteQueryProcedureAsync<T>(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             string procedureName,
             object procedureParams = null,
             int commandTimeout = 30,
@@ -46,7 +46,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task ExecuteNonQueryProcedureAsync(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             string procedureName,
             object procedureParams = null,
             int commandTimeout = 30,
@@ -65,7 +65,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task ExecuteNonQueryAsync(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             string query,
             object queryParams = null,
             int commandTimeout = 30,
@@ -83,14 +83,14 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteNonQueryAsync(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             Func<MySqlConnection, CancellationToken, Task> func,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
             {
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                await func(connection, cancellationToken).ConfigureAwait(false);
+                await connection.Connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await func(connection.Connection, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -105,7 +105,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<IEnumerable<T>> ExecuteQueryAsync<T>(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             string queryStatement,
             object queryParams = null,
             int commandTimeout = 30,
@@ -125,7 +125,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<T> ExecuteQueryFirstOrDefaultAsync<T>(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             string queryStatement,
             object queryParams = null,
             int commandTimeout = 30,
@@ -143,15 +143,15 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<T>> ExecuteQueryAsync<T>(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             Func<MySqlConnection, CancellationToken, Task<IEnumerable<T>>> taskFunc,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (connection.State == ConnectionState.Closed)
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-
-            return await taskFunc(connection, cancellationToken).ConfigureAwait(false);
-
+            using (connection)
+            {
+                await connection.Connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                return await taskFunc(connection.Connection, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -163,30 +163,62 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<T> ExecuteQuerWithTransactonAsync<T>(
-            this MySqlConnection connection,
+            this IDbConnection connection,
             Func<MySqlConnection, IDbTransaction, Task<T>> taskFunc,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (connection.State == ConnectionState.Closed)
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-
-            T result;
-
-            var transaction = connection.BeginTransaction();
-            try
+            using (connection)
             {
-                result = await taskFunc(connection, transaction).ConfigureAwait(false);
-                transaction.Commit();
+                T result;
+                await connection.Connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                var transaction = connection.Connection.BeginTransaction();
+                try
+                {
+                    result = await taskFunc(connection.Connection, transaction).ConfigureAwait(false);
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+                return result;
             }
-            catch (Exception)
-            {
-                transaction.Rollback();
-                throw;
-            }
-            return result;
-
         }
-       
+
+        public static async Task ExecuteWithTransactonAsync(
+            this IDbConnection connection,
+            Func<MySqlConnection, CancellationToken, Task> taskFunc,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (connection)
+            {
+                await connection.Connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                var transaction = connection.Connection.BeginTransaction();
+                try
+                {
+                    await taskFunc(connection.Connection, cancellationToken).ConfigureAwait(false);
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public static Task ExecuteTransactionNonQueryAsync(
+            this IDbConnection connection,
+            string query,
+            object queryParams = null,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default(CancellationToken))
+            => ExecuteWithTransactonAsync(connection,
+                (c, ct) => c.ExecuteAsync(
+                    new CommandDefinition(query, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
+
+
 
         #endregion
     }
