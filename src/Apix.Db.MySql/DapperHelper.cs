@@ -35,7 +35,7 @@ namespace Apix.Db.Mysql
                 (c, ct) => c.QueryAsync<T>(
                     new CommandDefinition(procedureName, procedureParams, commandType: CommandType.StoredProcedure, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
 
- 
+
         /// <summary>
         /// Execute non-query stored procedure
         /// </summary>
@@ -74,7 +74,7 @@ namespace Apix.Db.Mysql
                     (c, ct) => c.ExecuteAsync(
                         new CommandDefinition(query, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
 
-       
+
         /// <summary>
         /// 
         /// </summary>
@@ -147,11 +147,11 @@ namespace Apix.Db.Mysql
             Func<MySqlConnection, CancellationToken, Task<IEnumerable<T>>> taskFunc,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (connection)
-            {
+            if (connection.State == ConnectionState.Closed)
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                return await taskFunc(connection, cancellationToken).ConfigureAwait(false);
-            }
+
+            return await taskFunc(connection, cancellationToken).ConfigureAwait(false);
+
         }
 
         /// <summary>
@@ -167,23 +167,24 @@ namespace Apix.Db.Mysql
             Func<MySqlConnection, IDbTransaction, Task<T>> taskFunc,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (connection)
-            {
-                T result;
+            if (connection.State == ConnectionState.Closed)
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                var transaction = connection.BeginTransaction();
-                try
-                {
-                    result = await taskFunc(connection, transaction).ConfigureAwait(false);
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-                return result;
+
+            T result;
+
+            var transaction = connection.BeginTransaction();
+            try
+            {
+                result = await taskFunc(connection, transaction).ConfigureAwait(false);
+                transaction.Commit();
             }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+            return result;
+
         }
 
         public static async Task ExecuteWithTransactonAsync(
