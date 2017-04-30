@@ -257,14 +257,14 @@ namespace Apix.Db.Mysql
             return SelectAllQuery(type);
         }
 
-        public static string SelectAllQuery(TypeInfo type)
+        public static string SelectAllQuery(TypeInfo type,string prefix = null)
         {
             var tableName = type.GetTableName();
             return GetQuery(type, SqlQueryType.SelectAll, tableName)
-                ?? AddQuery(type, SqlQueryType.SelectAll, tableName, GenerateSelectAllQuery(type, tableName));
+                ?? AddQuery(type, SqlQueryType.SelectAll,$"{tableName}{(prefix.IsNotNullOrTrimEmpty()?"":"_")}{prefix}", GenerateSelectAllQuery(type, tableName, prefix));
         }
 
-        private static string GenerateSelectAllQuery(TypeInfo type, string tableName)
+        private static string GenerateSelectAllQuery(TypeInfo type, string tableName, string prefix = null)
         {
             var properties = GetOrAdd(type);
             var selectBody = new StringBuilder("SELECT ");
@@ -272,9 +272,9 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     selectBody.Append(",");
-                selectBody.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
+                selectBody.Append($"{prefix}{(prefix.IsNotNullOrTrimEmpty() ? "" : ".")}`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
-            selectBody.Append($" FROM {tableName} ");
+            selectBody.Append($" FROM {tableName} {prefix} ");
 
             return selectBody.ToString();
         }
