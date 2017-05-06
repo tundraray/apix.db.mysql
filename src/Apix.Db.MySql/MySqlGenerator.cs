@@ -260,8 +260,11 @@ namespace Apix.Db.Mysql
         public static string SelectAllQuery(TypeInfo type,string prefix = null)
         {
             var tableName = type.GetTableName();
-            return GetQuery(type, SqlQueryType.SelectAll, tableName)
-                ?? AddQuery(type, SqlQueryType.SelectAll,$"{tableName}{(prefix.IsNotNullOrEmpty()?"_":"")}{prefix}", GenerateSelectAllQuery(type, tableName, prefix));
+            return GetQuery(type, SqlQueryType.SelectAll,
+                       $"{tableName}{(prefix.IsNotNullOrEmpty() ? "_" : "")}{prefix}")
+                   ?? AddQuery(type, SqlQueryType.SelectAll,
+                       $"{tableName}{(prefix.IsNotNullOrEmpty() ? "_" : "")}{prefix}",
+                       GenerateSelectAllQuery(type, tableName, prefix));
         }
 
         private static string GenerateSelectAllQuery(TypeInfo type, string tableName, string prefix = null)
