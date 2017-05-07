@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Dapper Extension for MySql</Description>
-    <VersionPrefix>1.0.2</VersionPrefix>
+    <VersionPrefix>$(Version)</VersionPrefix>
     <VersionSuffix>beta</VersionSuffix>
     <Authors>Apix</Authors>
     <TargetFramework>netstandard1.6</TargetFramework>
