@@ -115,6 +115,27 @@ namespace Apix.Db.Mysql
                     new CommandDefinition(queryStatement, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
 
         /// <summary>
+        /// Execute scalar query
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="queryStatement"></param>
+        /// <param name="queryParams"></param>
+        /// <param name="commandTimeout"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static Task<T> ExecuteScalarAsync<T>(
+            this MySqlConnection connection,
+            string queryStatement,
+            object queryParams = null,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default(CancellationToken))
+            => ExecuteAsync(connection,
+                (c, ct) => c.ExecuteScalarAsync<T>(
+                    new CommandDefinition(queryStatement, queryParams, commandTimeout: commandTimeout, cancellationToken: ct)), cancellationToken);
+
+
+        /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -145,6 +166,18 @@ namespace Apix.Db.Mysql
         public static async Task<IEnumerable<T>> ExecuteQueryAsync<T>(
             this MySqlConnection connection,
             Func<MySqlConnection, CancellationToken, Task<IEnumerable<T>>> taskFunc,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (connection)
+            {
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                return await taskFunc(connection, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public static async Task<T> ExecuteAsync<T>(
+            this MySqlConnection connection,
+            Func<MySqlConnection, CancellationToken, Task<T>> taskFunc,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (connection)
