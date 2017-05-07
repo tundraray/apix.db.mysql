@@ -50,7 +50,7 @@ namespace Apix.Db.Mysql
 
         private static string GetKey(TypeInfo type, string queryType, string tableName)
         {
-            return string.Join("_", type.Name, queryType, tableName);
+            return string.Join("_", type.AssemblyQualifiedName, queryType, tableName);
         }
         /// <summary>
         /// Add query string
@@ -251,20 +251,23 @@ namespace Apix.Db.Mysql
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static string SelectAllQuery<T>()
+        public static string SelectAllQuery<T>(string prefix = null)
         {
             var type = typeof(T).GetTypeInfo();
-            return SelectAllQuery(type);
+            return SelectAllQuery(type, prefix);
         }
 
-        public static string SelectAllQuery(TypeInfo type)
+        public static string SelectAllQuery(TypeInfo type,string prefix = null)
         {
             var tableName = type.GetTableName();
-            return GetQuery(type, SqlQueryType.SelectAll, tableName)
-                ?? AddQuery(type, SqlQueryType.SelectAll, tableName, GenerateSelectAllQuery(type, tableName));
+            return GetQuery(type, SqlQueryType.SelectAll,
+                       $"{tableName}{(prefix.IsNotNullOrEmpty() ? "_" : "")}{prefix}")
+                   ?? AddQuery(type, SqlQueryType.SelectAll,
+                       $"{tableName}{(prefix.IsNotNullOrEmpty() ? "_" : "")}{prefix}",
+                       GenerateSelectAllQuery(type, tableName, prefix));
         }
 
-        private static string GenerateSelectAllQuery(TypeInfo type, string tableName)
+        private static string GenerateSelectAllQuery(TypeInfo type, string tableName, string prefix = null)
         {
             var properties = GetOrAdd(type);
             var selectBody = new StringBuilder("SELECT ");
@@ -272,9 +275,9 @@ namespace Apix.Db.Mysql
             {
                 if (i > 0)
                     selectBody.Append(",");
-                selectBody.Append($"`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
+                selectBody.Append($"{prefix}{(prefix.IsNotNullOrEmpty() ? "." : "")}`{properties[i].GetDatabaseFieldName()}` as `{properties[i].Name}`");
             }
-            selectBody.Append($" FROM {tableName} ");
+            selectBody.Append($" FROM {tableName} {prefix} ");
 
             return selectBody.ToString();
         }
