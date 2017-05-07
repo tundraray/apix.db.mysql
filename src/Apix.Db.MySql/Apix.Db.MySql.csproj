@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Dapper Extension</Description>
+    <Description>Dapper Extension for MySql</Description>
     <VersionPrefix>1.0.2</VersionPrefix>
     <VersionSuffix>beta</VersionSuffix>
     <Authors>Apix</Authors>
@@ -16,9 +16,9 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>1.0.11</Version>
-    <AssemblyVersion>1.0.11.0</AssemblyVersion>
-    <FileVersion>1.0.11.0</FileVersion>
+    <Version>1.0.12</Version>
+    <AssemblyVersion>1.0.12.0</AssemblyVersion>
+    <FileVersion>1.0.12.0</FileVersion>
 
   </PropertyGroup>
 
