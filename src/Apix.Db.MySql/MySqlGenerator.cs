@@ -99,7 +99,7 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
+                columnNames.Append($"`{properties[i].GetDatabaseFieldName()}`");
 
                 columnValues.Append($"@{properties[i].Name}");
 
@@ -139,7 +139,7 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
+                columnNames.Append($"`{properties[i].GetDatabaseFieldName()}`");
                 columnValues.Append($"@{properties[i].Name}");
 
                 if (conditionCounter > 0)
@@ -159,7 +159,7 @@ namespace Apix.Db.Mysql
 
 
             return $"INSERT INTO {tableName} ({columnNames}) VALUES ({columnValues});" +
-                   $"{selectQuery} WHERE ";
+                   $"{selectQuery} WHERE {condition}";
         }
 
         #endregion
