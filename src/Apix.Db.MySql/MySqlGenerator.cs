@@ -149,7 +149,7 @@ namespace Apix.Db.Mysql
                         condition.Append(" AND ");
                     }
                     var property = (properties[i].IsDatabaseAutoIncrement()
-                        ? "SCOPE_IDENTITY()"
+                        ? "LAST_INSERT_ID()"
                         : "@" + properties[i].Name);
                     condition.Append($"`{properties[i].GetDatabaseFieldName()}` = {property}");
                     conditionCounter++;
