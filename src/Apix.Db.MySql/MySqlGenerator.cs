@@ -141,14 +141,13 @@ namespace Apix.Db.Mysql
 
                 columnNames.Append($"`{properties[i].GetDatabaseFieldName()}`");
                 columnValues.Append($"@{properties[i].Name}");
-
-                if (conditionCounter > 0)
-                {
-                    condition.Append(" AND ");
-                }
-
+                
                 if (properties[i].IsDatabaseIdentity() || properties[i].IsDatabaseAutoIncrement())
                 {
+                    if (conditionCounter > 0)
+                    {
+                        condition.Append(" AND ");
+                    }
                     var property = (properties[i].IsDatabaseAutoIncrement()
                         ? "SCOPE_IDENTITY()"
                         : "@" + properties[i].Name);
