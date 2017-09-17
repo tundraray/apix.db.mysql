@@ -423,7 +423,7 @@ namespace Apix.Db.Mysql
             }
         }
 
-        public string GetCorrectPropertyName<T>(Expression<Func<T, Object>> expression)
+        public static string GetCorrectPropertyName<T>(Expression<Func<T, Object>> expression)
         {
             if (expression is MemberExpression) {
                 return ((MemberExpression)expression).Member.GetDatabaseFieldName();
