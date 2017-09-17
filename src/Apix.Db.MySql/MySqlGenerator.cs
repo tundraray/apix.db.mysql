@@ -114,8 +114,8 @@ namespace Apix.Db.Mysql
         {
             var type = typeof(T).GetTypeInfo();
             var tableName = type.GetTableName();
-            return GetQuery(type, SqlQueryType.Insert, tableName) ??
-                   AddQuery(type, SqlQueryType.Insert, tableName, GenerateInsertQueryWithResult(type, tableName));
+            return GetQuery(type, SqlQueryType.InsertWithResult, tableName) ??
+                   AddQuery(type, SqlQueryType.InsertWithResult, tableName, GenerateInsertQueryWithResult(type, tableName));
         }
 
         private static string GenerateInsertQueryWithResult(TypeInfo type, string tableName)
@@ -409,7 +409,7 @@ namespace Apix.Db.Mysql
         {
             if (body.NodeType != ExpressionType.AndAlso && body.NodeType != ExpressionType.OrElse)
             {
-                var propertyName = ((MemberExpression)body.Left).Member.GetDatabaseFieldName();
+                var propertyName = GetCorrectPropertyName(body.Left);
                 var propertyValue = Expression.Lambda(body.Right).Compile().DynamicInvoke();
                 var opr = GetOperator(body.NodeType);
                 var link = GetOperator(linkingType);
@@ -421,6 +421,17 @@ namespace Apix.Db.Mysql
                 WalkTree((BinaryExpression)body.Left, body.NodeType, ref queryProperties);
                 WalkTree((BinaryExpression)body.Right, body.NodeType, ref queryProperties);
             }
+        }
+
+        public string GetCorrectPropertyName<T>(Expression<Func<T, Object>> expression)
+        {
+            if (expression is MemberExpression) {
+                return ((MemberExpression)expression).Member.GetDatabaseFieldName();
+            }
+            else {
+                var op = ((UnaryExpression)expression).Operand;
+                return ((MemberExpression)op).Member.GetDatabaseFieldName();
+            }                
         }
         /// <summary>
         /// 
