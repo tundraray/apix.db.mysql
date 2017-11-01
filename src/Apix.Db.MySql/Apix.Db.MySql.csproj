@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <Description>Dapper Extension for MySql</Description>
     <VersionPrefix>1.0.14</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <VersionSuffix>
+    </VersionSuffix>
     <Authors>Apix</Authors>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Apix.Db.Mysql</AssemblyName>
@@ -14,11 +14,10 @@
     <RepositoryUrl>https://github.com/apix-live/apix.db.mysql.git</RepositoryUrl>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <AssemblyVersion>1.0.14.0</AssemblyVersion>
     <FileVersion>1.0.14.0</FileVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Apix.Framework" Version="1.0.0" />
     <PackageReference Include="Dapper" Version="1.50.2" />
@@ -26,5 +25,4 @@
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
   </ItemGroup>
-
 </Project>
