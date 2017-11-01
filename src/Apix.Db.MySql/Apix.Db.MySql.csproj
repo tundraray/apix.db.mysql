@@ -12,10 +12,9 @@
     <PackageLicenseUrl>https://apix.live</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/apix-live/apix.db.mysql.git</RepositoryUrl>
-    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
     <AssemblyVersion>1.0.14.0</AssemblyVersion>
     <FileVersion>1.0.14.0</FileVersion>
   </PropertyGroup>
