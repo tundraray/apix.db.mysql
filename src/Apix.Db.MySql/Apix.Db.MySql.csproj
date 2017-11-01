@@ -23,7 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Apix.Framework" Version="1.0.0" />
     <PackageReference Include="Dapper" Version="1.50.2" />
-    <PackageReference Include="MySqlConnector" Version="0.26.1" />
+    <PackageReference Include="MySqlConnector" Version="0.*" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
   </ItemGroup>
