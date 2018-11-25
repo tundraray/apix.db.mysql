@@ -5,7 +5,7 @@
     <VersionSuffix>
     </VersionSuffix>
     <Authors>Apix</Authors>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Apix.Db.Mysql</AssemblyName>
     <PackageId>Apix.Db.Mysql</PackageId>
     <PackageProjectUrl>https://apix.live</PackageProjectUrl>
