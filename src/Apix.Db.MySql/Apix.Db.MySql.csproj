@@ -4,8 +4,8 @@
     <VersionPrefix>1.0.14</VersionPrefix>
     <VersionSuffix>
     </VersionSuffix>
-    <Authors>Apix</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Authors>Mikhail Andreev</Authors>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Apix.Db.Mysql</AssemblyName>
     <PackageId>Apix.Db.Mysql</PackageId>
     <PackageProjectUrl>https://apix.live</PackageProjectUrl>
@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Apix.Framework" Version="1.0.0" />
     <PackageReference Include="Dapper" Version="1.50.2" />
-    <PackageReference Include="MySqlConnector" Version="0.*" />
+    <PackageReference Include="MySqlConnector" Version="0.48.2" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
   </ItemGroup>
