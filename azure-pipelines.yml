@@ -1,0 +1,33 @@
+resources:
+- repo: self
+queue:
+  name: Hosted Ubuntu 1604
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: restore
+
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack'
+  inputs:
+    command: pack
+
+    versioningScheme: byBuildNumber
+
+
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
+  inputs:
+    command: push
+
+    nuGetFeedType: external
+
+    publishFeedCredentials: NuGet
+
+
