@@ -99,7 +99,7 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
+                columnNames.Append($"`{properties[i].GetDatabaseFieldName()}`");
 
                 columnValues.Append($"@{properties[i].Name}");
 
@@ -114,8 +114,8 @@ namespace Apix.Db.Mysql
         {
             var type = typeof(T).GetTypeInfo();
             var tableName = type.GetTableName();
-            return GetQuery(type, SqlQueryType.Insert, tableName) ??
-                   AddQuery(type, SqlQueryType.Insert, tableName, GenerateInsertQueryWithResult(type, tableName));
+            return GetQuery(type, SqlQueryType.InsertWithResult, tableName) ??
+                   AddQuery(type, SqlQueryType.InsertWithResult, tableName, GenerateInsertQueryWithResult(type, tableName));
         }
 
         private static string GenerateInsertQueryWithResult(TypeInfo type, string tableName)
@@ -139,18 +139,17 @@ namespace Apix.Db.Mysql
                     columnValues.Append(",");
                 }
 
-                columnNames.Append($"{properties[i].GetDatabaseFieldName()}");
+                columnNames.Append($"`{properties[i].GetDatabaseFieldName()}`");
                 columnValues.Append($"@{properties[i].Name}");
-
-                if (conditionCounter > 0)
-                {
-                    condition.Append(" AND ");
-                }
-
+                
                 if (properties[i].IsDatabaseIdentity() || properties[i].IsDatabaseAutoIncrement())
                 {
+                    if (conditionCounter > 0)
+                    {
+                        condition.Append(" AND ");
+                    }
                     var property = (properties[i].IsDatabaseAutoIncrement()
-                        ? "SCOPE_IDENTITY()"
+                        ? "LAST_INSERT_ID()"
                         : "@" + properties[i].Name);
                     condition.Append($"`{properties[i].GetDatabaseFieldName()}` = {property}");
                     conditionCounter++;
@@ -159,7 +158,7 @@ namespace Apix.Db.Mysql
 
 
             return $"INSERT INTO {tableName} ({columnNames}) VALUES ({columnValues});" +
-                   $"{selectQuery} WHERE ";
+                   $"{selectQuery} WHERE {condition}";
         }
 
         #endregion
@@ -184,27 +183,29 @@ namespace Apix.Db.Mysql
             var updateFields = new StringBuilder();
             var condition = new StringBuilder();
             var conditionCounter = 0;
-            for (var i = 0; i < properties.Length; i++)
+            var fieldCounter = 0;
+            foreach (var column in properties)
             {
-                if (!properties[i].IsDatabaseIdentity())
+                if (!column.IsDatabaseIdentity())
                 {
-                    if (i > 0)
+                    if (fieldCounter > 0)
                     {
                         updateFields.Append(",");
                     }
-                    updateFields.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
+                    updateFields.Append($"`{column.GetDatabaseFieldName()}` = @{column.Name}");
+                    fieldCounter++;
                 }
-                if (properties[i].IsDatabaseIdentity())
+                if (column.IsDatabaseIdentity())
                 {
                     if (conditionCounter > 0)
                     {
                         condition.Append(" AND ");
                     }
-                    condition.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
+                    condition.Append($"`{column.GetDatabaseFieldName()}` = @{column.Name}");
                     conditionCounter++;
                 }
             }
-            return $"UPDATE `{tableName}` SET {updateFields} WHERE {condition}";
+            return $"UPDATE {tableName} SET {updateFields} WHERE {condition}";
         }
         #endregion
 
@@ -410,7 +411,7 @@ namespace Apix.Db.Mysql
         {
             if (body.NodeType != ExpressionType.AndAlso && body.NodeType != ExpressionType.OrElse)
             {
-                var propertyName = ((MemberExpression)body.Left).Member.GetDatabaseFieldName();
+                var propertyName = GetCorrectPropertyName(body.Left);
                 var propertyValue = Expression.Lambda(body.Right).Compile().DynamicInvoke();
                 var opr = GetOperator(body.NodeType);
                 var link = GetOperator(linkingType);
@@ -422,6 +423,17 @@ namespace Apix.Db.Mysql
                 WalkTree((BinaryExpression)body.Left, body.NodeType, ref queryProperties);
                 WalkTree((BinaryExpression)body.Right, body.NodeType, ref queryProperties);
             }
+        }
+
+        private static string GetCorrectPropertyName(Expression expression)
+        {
+            if (expression is MemberExpression) {
+                return ((MemberExpression)expression).Member.GetDatabaseFieldName();
+            }
+            else {
+                var op = ((UnaryExpression)expression).Operand;
+                return ((MemberExpression)op).Member.GetDatabaseFieldName();
+            }                
         }
         /// <summary>
         /// 

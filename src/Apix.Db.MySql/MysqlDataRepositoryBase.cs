@@ -121,7 +121,7 @@ namespace Apix.Db.Mysql
         /// <param name="cancellationToken">Cancellation token</param>
         public Task<T> CreateAsyncWithResult(T entity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Connection.ExecuteQueryFirstOrDefaultAsync<T>(MySqlGenerator.InsertQuery<T>(), entity,
+            return Connection.ExecuteQueryFirstOrDefaultAsync<T>(MySqlGenerator.InsertQueryWithResult<T>(), entity,
                 cancellationToken: cancellationToken);
         }
 

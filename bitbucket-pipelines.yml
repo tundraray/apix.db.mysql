@@ -1,11 +1,9 @@
-image: microsoft/aspnetcore-build
+image: microsoft/dotnet:2.1-sdk-alpine
 pipelines:
   default:
     - step:
         script:
-          # Generate build number 
-          - BUILD_NUMBER=`printf "%03d" $(git log --oneline | wc -l)`
-          - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
+          - echo "Build number':' ${BITBUCKET_BUILD_NUMBER} (will be appended to the generated NuGet package version)"
           #
           # Restore packages
           - dotnet restore
@@ -14,18 +12,17 @@ pipelines:
           # Run tests (uncomment to run tests)
           # - dotnet test
           # Create package
-          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix beta-${BUILD_NUMBER} --output ../../build --verbosity d
+          - dotnet pack --configuration ${BUILD_CONFIGURATION} --version-suffix beta-${BITBUCKET_BUILD_NUMBER} --output ../../build --verbosity d
           # Push generated package(s)
           - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
           # Push generated package(s)
-          - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
+          - dotnet nuget push build/*.nupkg -k ${NUGET_APIKEY} -s ${NUGET_URL}
+
   branches:
     master:
       - step:
           script:
-            # Generate build number 
-            - BUILD_NUMBER=`printf "%03d" $(git log --oneline | wc -l)`
-            - echo "Build number':' ${BUILD_NUMBER} (will be appended to the generated NuGet package version)"
+            - echo "Build number':' ${BITBUCKET_BUILD_NUMBER} (will be appended to the generated NuGet package version)"
             #
             # Restore packages
             - dotnet restore
@@ -38,4 +35,4 @@ pipelines:
             # Push generated package(s)
             - dotnet nuget push build/*.nupkg -k ${MYGET_NUGET_APIKEY} -s ${MYGET_NUGET_URL} 
             # Push generated package(s)
-            - "for file in build/*.nupkg; do curl -X PUT \"${NUGET_URL}\" -H \"X-NuGet-ApiKey: ${NUGET_APIKEY}\" -T $file; done"
+            - dotnet nuget push build/*.nupkg -k ${NUGET_APIKEY} -s ${NUGET_URL}
