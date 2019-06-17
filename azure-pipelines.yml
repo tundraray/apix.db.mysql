@@ -3,7 +3,7 @@ resources:
 queue:
   name: Hosted Ubuntu 1604
 
-name: 1.0.14.$(BuildID)
+name: 1.0.15.$(BuildID)
 steps:
 - task: DotNetCoreCLI@2
   displayName: 'dotnet restore'
