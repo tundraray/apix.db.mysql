@@ -183,27 +183,29 @@ namespace Apix.Db.Mysql
             var updateFields = new StringBuilder();
             var condition = new StringBuilder();
             var conditionCounter = 0;
-            for (var i = 0; i < properties.Length; i++)
+            var fieldCounter = 0;
+            foreach (var column in properties)
             {
-                if (!properties[i].IsDatabaseIdentity())
+                if (!column.IsDatabaseIdentity())
                 {
-                    if (i > 0)
+                    if (fieldCounter > 0)
                     {
                         updateFields.Append(",");
                     }
-                    updateFields.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
+                    updateFields.Append($"`{column.GetDatabaseFieldName()}` = @{column.Name}");
+                    fieldCounter++;
                 }
-                if (properties[i].IsDatabaseIdentity())
+                if (column.IsDatabaseIdentity())
                 {
                     if (conditionCounter > 0)
                     {
                         condition.Append(" AND ");
                     }
-                    condition.Append($"`{properties[i].GetDatabaseFieldName()}` = @{properties[i].Name}");
+                    condition.Append($"`{column.GetDatabaseFieldName()}` = @{column.Name}");
                     conditionCounter++;
                 }
             }
-            return $"UPDATE `{tableName}` SET {updateFields} WHERE {condition}";
+            return $"UPDATE {tableName} SET {updateFields} WHERE {condition}";
         }
         #endregion
 
